@@ -1,44 +1,83 @@
-function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, connected)
+function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected)
 % Generate features (random x and u) in a safe way, that is, with a minimum
 % distance among datapoints
 
-    threshold = 1e-3;
+    disp([newline 'Generating features:']);
+
+    threshold = 1e-1;
 
     nx = numel(xmin);
     nu = numel(umin);
     
-    d = 1;
-    z = zeros(D,nx+(nu*N));
-    
-    while d <= D
-    
-        x_candidate = (xmax - xmin).*rand(nx,1) + xmin;
-        u_candidate = (umax - umin).*rand(nu,N,1) + umin;
-        
-        z_candidate = [x_candidate' u_candidate];
-        
-        if min(dist(z,z_candidate')) >= threshold
-            z(d,:) = z_candidate;
-            d = d + 1;
-            if mod(d)
+    if strcmp(method,'rnd')
+
+        d = 1;
+        z = zeros(D,nx+(nu*N));
+
+        while d <= D
+
+            x_candidate = (xmax - xmin).*rand(nx,1) + xmin;
+            u_candidate = (umax - umin).*rand(nu,N,1) + umin;
+
+            z_candidate = [x_candidate' u_candidate];
+
+            if min(dist(z,z_candidate')) >= threshold
+                z(d,:) = z_candidate;
+                d = d + 1;
+                if mod(d,100) == 0, disp([num2str(d) ' samples collected...']); end
+            end
+
+        end
+
+        if connected
+
+            % weird formatting...
+            x = z(:,1:nx)';
+            for i = 1:D
+                u(:,:,i) = z(i,nx+1:end);
+            end
+
+        else
+
+            x = z(:,1:nx)';
+            u = z(:,nx+1:end);
+
         end
         
-    end
-    
-    if connected
-     
-        % weird formatting...
-        x = z(:,1:nx)';
-        for i = 1:D
-            u(:,:,i) = z(i,nx+1:end);
+    elseif strcmp(method,'grid')
+        
+        %D = 500;
+        d_dim = ceil(D^(1/(nx+nu))) - 1;
+
+        x1_gran = (xmax(1) - xmin(1)) / d_dim;
+        x2_gran = (xmax(2) - xmin(2)) / d_dim;
+        u_gran = (umax - umin) / d_dim;
+
+        x1_vec = xmin(1):x1_gran:xmax(1);
+        x2_vec = xmin(2):x2_gran:xmax(2);
+        u_vec = umin:u_gran:umax;
+
+        [X1,X2,U] = ndgrid(x1_vec,x1_vec,u_vec);
+        X1 = X1(:);
+        X2 = X2(:);
+        U = U(:);
+        
+        % dropping rnd elements to return exactly D elements
+        for i = 1:(numel(X1)-D)
+          
+            idx = randi([1,numel(X1)]);
+            X1(idx) = [];
+            X2(idx) = [];
+            U(idx) = [];
+            
         end
         
-    else
-    
         x = z(:,1:nx)';
         u = z(:,nx+1:end);
         
+        
     end
+
     
 end
 

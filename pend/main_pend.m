@@ -31,16 +31,18 @@ delta_bar = 0;
 connected = false; 
 visuals = false;
   
-dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, connected, visuals);
+dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
 
 % % estimating RKHS norms and kernel lengthscales
 % lengthscale_range = 3:0.1:5;
 % [gammas, lengthscales] = estimate_rkhs(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscale_range);
 
-lengthscales = [3 1 1; 0.8 2 0.9];
-gammas = estimate_rkhs2(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscales);
+lengthscales = [3 2 1; 2 1.5 0.6];
+gammas = estimate_rkhs2(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscales)
 
-%% PART2
+%gammas(2,:) = 0.5*gammas(2,:); % second xdim reduction
+
+% PART2
 % Learning a 1-step ahead KRR model for the system
 
 % extracting a dataset from the system
@@ -50,7 +52,7 @@ delta_bar = 0.01;
 connected = false; 
 visuals = false;    
 
-dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, connected, visuals);
+dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
 
 for nx = 1:nx
     
@@ -102,41 +104,43 @@ N = 3;
 
 clear ubs lbs
 
+aug_factor = 1;
+
 % extracting a dataset from the system
 N = 3;  
-D = [200 400 500]; 
+D = [200 400 600]; 
 delta_bar = 0.01; 
 connected = false; 
 visuals = false;
 
-dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, connected, visuals);
+rng(1)
+dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
 
-% Study the distances among dataset features
-min_dist = inf(1,N);
-for step = 1:N
-    data = dataset{1,step}(:,1:end-1);
-    d = D(step);
-    for i = 1:d
-        data_temp = data;
-        sample = data_temp(i,:);
-        data_temp(i,:) = [];
-        sample_min_dist = min(dist(data_temp,sample'));
-        if sample_min_dist < min_dist(step), min_dist(step) = sample_min_dist; end
-    end
-end
-min_dist
-
-% Study the distance of the dataset and the query points
-for step = 1:N
-    disp(['Step ' num2str(step) ':'])
-    z = [x_opti(:,1)' u_opti(1:step)];
-    Z = dataset{1,step}(:,1:end-1);
-    disp(['Min distance = ' num2str(min(dist(Z,z')))]);
-end
+% % Study the distances among dataset features
+% min_dist = inf(1,N);
+% for step = 1:N
+%     data = dataset{1,step}(:,1:end-1);
+%     d = D(step);
+%     for i = 1:d
+%         data_temp = data;
+%         sample = data_temp(i,:);
+%         data_temp(i,:) = [];
+%         sample_min_dist = min(dist(data_temp,sample'));
+%         if sample_min_dist < min_dist(step), min_dist(step) = sample_min_dist; end
+%     end
+% end
+% min_dist
+% % Study the distance of the dataset and the query points
+% for step = 1:N
+%     
+%     z = [x_opti(:,1)' u_opti(1:step)];
+%     Z = dataset{1,step}(:,1:end-1);
+%     disp(['Min distance, step' num2str(step) ' = ' num2str(min(dist(Z,z')))]);
+%     
+% end
 
 
 disp([newline 'Computing the optimal bounds:'])
-aug_factor = 1;
 for step = 1:N
     
     for state = 1:nx
@@ -169,9 +173,11 @@ for state = 1:nx
     
     plot(xx, x_max(state)*ones(size(xx)), 'k--', 'linewidth', 2)
     plot(xx, x_min(state)*ones(size(xx)), 'k--', 'linewidth', 2)
-    ylim([x_min(state)*1.5 x_max(state)*1.5])
+    %ylim([x_min(state)*1.5 x_max(state)*1.5]);
     xlabel('time step'); xticks(1:numel(xx));
     ylabel(['x' num2str(state)]);
     
 end
 sgtitle(['Nominal traj and optimal bounds for D=' num2str(D) ', aug factor=' num2str(aug_factor) ' and del bar=' num2str(delta_bar)])
+
+ubs

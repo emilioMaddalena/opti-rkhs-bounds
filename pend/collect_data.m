@@ -1,4 +1,4 @@
-function DATASET = collect_data(N, D, dynamics, xmin, xmax, umin, umax, delta_bar, connected, plts)
+function DATASET = collect_data(N, D, dynamics, xmin, xmax, umin, umax, delta_bar, method, connected, plts)
 %
 % Returns a {x_dim, N} cell array.
 %
@@ -32,7 +32,7 @@ function DATASET = collect_data(N, D, dynamics, xmin, xmax, umin, umax, delta_ba
         % OLD: x0 = (xmax - xmin).*rand(2,D) + xmin;
         % OLD: u  = (umax - umin).*rand(1,N,D) + umin;
         
-        [x0,u] = gen_feats(N, D, xmin, xmax, umin, umax, connected);
+        [x0,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected);
         
         T = [0 N*T_samp];
         time = linspace(T(1),T(2),N+1);
@@ -80,7 +80,7 @@ function DATASET = collect_data(N, D, dynamics, xmin, xmax, umin, umax, delta_ba
             time = linspace(T(1),T(2),n+1);
             x_steps = zeros(n,2);
 
-            [X0,U] = gen_feats(n, D(n), xmin, xmax, umin, umax, connected);
+            [X0,U] = gen_feats(n, D(n), xmin, xmax, umin, umax, method, connected);
             
             for d = 1:D(n)
                 

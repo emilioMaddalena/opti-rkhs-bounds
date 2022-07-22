@@ -2,7 +2,7 @@ function [ub,lb] = opt_bnd(x, data, kernel, gamma, del_bar)
 %OPT_BND Summary of this function goes here
 %   Detailed explanation goes here
 
-    jitter = 1e-2;
+    jitter = 1e-4;
 
     function bound = compute_bound(x, dir)
 
@@ -22,6 +22,7 @@ function [ub,lb] = opt_bnd(x, data, kernel, gamma, del_bar)
         sol = optimize(const, obj, options);
 
         if sol.problem ~= 0
+            disp(sol.problem)
             error('Opt problem is infeasible!');
         end
         
