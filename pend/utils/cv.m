@@ -55,5 +55,7 @@ function [lengthscales, losses] = cv(folds, kernel, lambda, dataset, lengthscale
         
     end
 
+    disp('Done estimating the lengthscales!')
+    
 end
 

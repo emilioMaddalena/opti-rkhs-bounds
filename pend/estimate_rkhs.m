@@ -37,4 +37,7 @@ function gammas = estimate_rkhs(dataset, kernel, lengthscales)
         
     end
 
+    disp('Done estimating the RKHS norms!')
+
+    
 end

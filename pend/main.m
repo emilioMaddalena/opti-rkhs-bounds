@@ -97,7 +97,7 @@ clear ubs lbs
 
 % extracting a dataset from the system
 N = 3;  
-D = [50 700 1050]; % 1200
+D = [100 700 900]; % 1200
 delta_bar = 0.01; 
 connected = false; 
 visuals = false;
@@ -108,8 +108,8 @@ datasets = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, 
 min_queries_dists(datasets, x_opti, u_opti)
 min_features_dists(datasets);
 
-delta_bar = 0.03;
-aug_factor = 1.4;
+delta_bar = 0.01;
+aug_factor = 1.3;
 
 disp([newline 'Computing the optimal bounds:'])
 for step = 1:N
