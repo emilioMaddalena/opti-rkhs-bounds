@@ -20,6 +20,7 @@ kernel = @(x1,x2,lengthscale) exp(-dist(x1,x2').^2 / (2*lengthscale^2));
 % 
 % [X1,X2,U] = ndgrid(x1_vec,x1_vec,u_vec);
 
+%%
 
 % PART1
 % Estimating the system's RKHS norms 
@@ -34,11 +35,14 @@ visuals = false;
 dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
 
 % % estimating RKHS norms and kernel lengthscales
-% lengthscale_range = 3:0.1:5;
+lengthscale_range = 1:0.2:3;
+folds = 10;
+lambda = 0.01;
+[lengthscales, losses] = cv(folds, kernel, lambda, dataset, lengthscale_range);
 % [gammas, lengthscales] = estimate_rkhs(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscale_range);
 
-lengthscales = [3 2 1; 2 1.5 0.6];
-gammas = estimate_rkhs2(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscales)
+%lengthscales = [3 2 1; 2 1.5 0.6];
+gammas = estimate_rkhs2(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), lengthscales);
 
 %gammas(2,:) = 0.5*gammas(2,:); % second xdim reduction
 
@@ -59,11 +63,10 @@ for nx = 1:nx
     X{nx} = dataset{nx,1}(:,1:end-1);
     y{nx} = dataset{nx,1}(:,end);
 
-    lam = 1e-4;
     jitter = 1e-8;
     n_data = size(X{nx},1);
     K{nx} = kernel(X{nx},X{nx},lengthscales(nx,1)) + jitter*eye(n_data);
-    alpha{nx} = (K{nx} + n_data*lam*eye(n_data))\y{nx}; 
+    alpha{nx} = (K{nx} + n_data*lambda*eye(n_data))\y{nx}; 
     
     kernel_casadi = @(x1,x2,lengthscale) exp(-diag((x1-repmat(x2,size(x1,1),1))*(x1-repmat(x2,size(x1,1),1))') / (2*lengthscale^2));
     krr{nx} = @(x) alpha{nx}'*kernel_casadi(X{nx},x,lengthscales(nx,1));
@@ -104,11 +107,9 @@ N = 3;
 
 clear ubs lbs
 
-aug_factor = 1;
-
 % extracting a dataset from the system
 N = 3;  
-D = [200 400 600]; 
+D = [50 700 1100]; % 1200
 delta_bar = 0.01; 
 connected = false; 
 visuals = false;
@@ -139,6 +140,8 @@ dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, d
 %     
 % end
 
+delta_bar = 0.03;
+aug_factor = 1.3;
 
 disp([newline 'Computing the optimal bounds:'])
 for step = 1:N
