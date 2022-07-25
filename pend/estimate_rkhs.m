@@ -1,4 +1,4 @@
-function [gammas, lengthscales] = estimate_rkhs(dataset, kernel, lengthscale_range)
+function gammas = estimate_rkhs(dataset, kernel, lengthscales)
 %
 % Returns two (x_dim, N) arrays: 
 % gammas - the estimated RKHS norms for each x_dim and time step
@@ -19,36 +19,22 @@ function [gammas, lengthscales] = estimate_rkhs(dataset, kernel, lengthscale_ran
             data = dataset{x_dim,time_step};
             norm_ests = [];
             
-            for lengthscale = lengthscale_range 
+            lengthscale = lengthscales(x_dim,time_step);
 
-                % gathering data
-                N = size(data,1);
-                X = data(:,1:end-1);
-                y = data(:,end);
+            % gathering data
+            N = size(data,1);
+            X = data(:,1:end-1);
+            y = data(:,end);
 
-                % computing the kernel matrix
-                K = kernel(X,X,lengthscale) + jitter*eye(N);
+            % computing the kernel matrix
+            K = kernel(X,X,lengthscale) + jitter*eye(N);
 
-                % estimating the RKHS norm from below 
-                norm_est = sqrt((y'/K)*y);
-                norm_ests = [norm_ests norm_est];
-
-            end
-            
-            lowest_norm = min(norm_ests);
-            
-%             p = plot(lengthscale_range, norm_ests, 'linewidth', 2); grid on; xlabel('lengthscale'); ylabel('RKHS estimate');
-%             disp(['Lowest norm: ', num2str(lowest_norm)])
-%             pause
-%             close
-
-            % save lowest RKHS norm and its associated lengthscale
-            gammas(x_dim,time_step) = lowest_norm;
-            lengthscales(x_dim,time_step) = lengthscale_range(norm_ests == lowest_norm);
+            % estimating the RKHS norm from below 
+            norm = sqrt((y'/K)*y);
+            gammas(x_dim,time_step) = norm;
             
         end
         
     end
 
 end
-
