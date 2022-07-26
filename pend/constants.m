@@ -4,9 +4,6 @@ T_samp = 1/5;
 
 jitter = 1e-8;
 
-% prediction horizon
-N_pred = 1/5;
-
 % system constraints
 x1_min = -3;
 x1_max = 3;

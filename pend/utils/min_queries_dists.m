@@ -11,7 +11,7 @@ function min_queries_dists(datasets, x, u)
 
     end
 
-    disp('The minimum distances for every step:')
+    disp('Distance between query point and the closest data point, for every step:')
     min_dists
 
 end

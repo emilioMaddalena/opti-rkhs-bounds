@@ -18,15 +18,16 @@ kernel = @(x1,x2,lengthscale) exp(-dist(x1,x2').^2 / (2*lengthscale^2));
 % PART1
 
 % extracting a dataset from the system
-N = 3;  
+N = 2;  
 D = [500 500 500];
 delta_bar = 0; 
 connected = false; 
 visuals = false;
-dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
+%dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
+dataset = collect_data2(D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid');
 
 % estimate the kernel lengthscales
-lengthscale_range = 1:0.2:3;
+lengthscale_range = 1:0.1:3;
 folds = 10;
 lambda = 0.01;
 [lengthscales, losses] = cv(folds, kernel, lambda, dataset, lengthscale_range);
@@ -39,12 +40,13 @@ gammas = estimate_rkhs(dataset, @(x1,x2,lengthscale) kernel(x1,x2,lengthscale), 
 % Learning a 1-step ahead KRR model for the system
 
 % extracting a dataset from the system
-N = 1;  
 D = 100; 
 delta_bar = 0.01; 
 connected = false; 
 visuals = false;    
-dataset = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
+%dataset = collect_data(1, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
+dataset = collect_data2(D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid');
+
 
 for nx = 1:nx
     
@@ -58,6 +60,7 @@ for nx = 1:nx
     
     kernel_casadi = @(x1,x2,lengthscale) exp(-diag((x1-repmat(x2,size(x1,1),1))*(x1-repmat(x2,size(x1,1),1))') / (2*lengthscale^2));
     krr{nx} = @(x) alpha{nx}'*kernel_casadi(X{nx},x,lengthscales(nx,1));
+    krr_viz{nx} = @(x) alpha{nx}'*kernel(X{nx},x,lengthscales(nx,1));
 
 end
 
@@ -68,22 +71,19 @@ surrogate_model = @(z) [krr{1}(z); krr{2}(z)];
 % visualization...
 
 % % visualizing the learned functions
-% U = 0; 
-% P = 225; 
-% gran1 = (x1_max - x1_min)/(sqrt(P) - 1);
-% gran2 = (x2_max - x2_min)/(sqrt(P) - 1);
-% [X1, X2] = meshgrid([x1_min:gran1:x1_max], [x2_min:gran2:x2_max]);
-% Z = [X1(:) X2(:) U*ones(size(X1(:)))];
-% 
-% surf(X1, X2, reshape(krr{1}(Z), size(X1)))
-% figure
-% surf(X1, X2, reshape(krr{2}(Z), size(X1)))
+U = 0; 
+P = 225; 
+gran1 = (x1_max - x1_min)/(sqrt(P) - 1);
+gran2 = (x2_max - x2_min)/(sqrt(P) - 1);
+[X1, X2] = meshgrid([x1_min:gran1:x1_max], [x2_min:gran2:x2_max]);
+Z = [X1(:) X2(:) U*ones(size(X1(:)))];
+surf(X1, X2, reshape(krr_viz{1}(Z), size(X1)))
+figure
+surf(X1, X2, reshape(krr_viz{2}(Z), size(X1)))
 
 % Computing an optimal control sequence
 
 x0 = [pi/2; 0];
-N = 3;
-
 [x_opti, u_opti] = ocp(surrogate_model, x0, N);
 
 % plot(x_opti(1,:),x_opti(2,:))
@@ -96,20 +96,20 @@ N = 3;
 clear ubs lbs
 
 % extracting a dataset from the system
-N = 3;  
-D = [100 700 900]; % 1200
-delta_bar = 0.01; 
+D = [100 200]; % 1200
+delta_bar = 0.1; 
 connected = false; 
-visuals = false;
+plts = false;
 
 rng(1)
-datasets = collect_data(N, D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', connected, visuals);
+%dataset = collect_data2(D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'grid', plts, surrogate_model);
+datasets = collect_data2(D, @(t,x,u) pend(t,x,u), x_min, x_max, u_min, u_max, delta_bar, 'ocp', plts, surrogate_model);
 
 min_queries_dists(datasets, x_opti, u_opti)
 min_features_dists(datasets);
 
-delta_bar = 0.01;
-aug_factor = 1.3;
+delta_bar = 0.2;
+aug_factor = 1;
 
 disp([newline 'Computing the optimal bounds:'])
 for step = 1:N

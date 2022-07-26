@@ -1,4 +1,4 @@
-function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected)
+function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method)
 % Generate features (random x and u) in a safe way, that is, with a minimum
 % distance among datapoints
 
@@ -29,7 +29,6 @@ function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected)
         
     elseif strcmp(method,'grid')
         
-        %D = 500;
         d_dim = ceil(D^(1/(nx+N*nu))) - 1;
 
         x1_gran = (xmax(1) - xmin(1)) / d_dim;
@@ -60,6 +59,7 @@ function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected)
         end   
         
         % dropping rnd elements to return exactly D elements
+        rng(1)
         for i = 1:(size(z,1)-D)
           
             idx = randi([1,size(z,1)]);
@@ -67,22 +67,55 @@ function [x,u] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected)
             
         end
         
+    elseif strcmp(method,'ocp')
+    % similar to 'grid', but only yields states
+
+        % individual vecs for every axis
+        d_dim = ceil(D^(1/nx))-1;
+        x1_gran = (xmax(1) - xmin(1)) / d_dim;
+        x2_gran = (xmax(2) - xmin(2)) / d_dim;
+        x1_vec = xmin(1):x1_gran:xmax(1);
+        x2_vec = xmin(2):x2_gran:xmax(2);
+        
+        % multidim X grid
+        coords = {x1_vec, x2_vec};
+        data = cell(1,nx);
+        [data{:}] = ndgrid(coords{:});
+        z = [];
+        for i = 1:nx
+            z = [z data{i}(:)];
+        end   
+        
+        % dropping rnd elements to return exactly D elements
+        rng(1)
+        for i = 1:(size(z,1)-D)
+            idx = randi([1,size(z,1)]);
+            z(idx,:) = [];
+        end
+        
     end
 
-    % Final formatting
-    if connected
+    % OLD way
+    %     % Final formatting
+    %     if connected
+    % 
+    %         % weird formatting...
+    %         x = z(:,1:nx)';
+    %         for i = 1:D
+    %             u(:,:,i) = z(i,nx+1:end);
+    %         end
+    % 
+    %     else
+    % 
+    %         x = z(:,1:nx)';
+    %         u = z(:,nx+1:end);
+    % 
+    %     end
 
-        % weird formatting...
-        x = z(:,1:nx)';
-        for i = 1:D
-            u(:,:,i) = z(i,nx+1:end);
-        end
-
-    else
-
-        x = z(:,1:nx)';
-        u = z(:,nx+1:end);
-
+    % weird formatting...
+    x = z(:,1:nx)';
+    for i = 1:D
+        u(:,:,i) = z(i,nx+1:end);
     end
 
     

@@ -43,8 +43,10 @@ function [x_opti,u_opti] = ocp(surrogate_model, x0, N)
     opti.minimize(J);
     ops = struct;
     ops.ipopt.tol = 1e-3;
+    ops.ipopt.print_level = 0;
+    ops.print_time = false;    
     opti.solver('ipopt', ops);
-
+    
     opti.set_value(X0, x0);
     sol = opti.solve();
 
