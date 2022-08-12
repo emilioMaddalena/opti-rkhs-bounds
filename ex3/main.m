@@ -94,7 +94,7 @@ for step = 1:N
         gamma = gammas(state,step);
         z = [x_opti(:,1)' u_opti(1:step)];
         
-        [ub, lb] = approx_bnd(z, data, @(x1,x2) kernel(x1,x2,lengthscales(state,step)), gamma*gamma_aug, delta_bar*delta_aug);
+        [ub, lb] = subopt_bnd(z, data, @(x1,x2) kernel(x1,x2,lengthscales(state,step)), gamma*gamma_aug, delta_bar*delta_aug);
         ubs_subopt(state,step) = ub;
         lbs_subopt(state,step) = lb;
         
