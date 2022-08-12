@@ -1,4 +1,4 @@
-function dataset = collect_data2(D, dynamics, xmin, xmax, umin, umax, delta_bar, method, plts, surrogate_model)
+function dataset = collect_data(D, dynamics, xmin, xmax, umin, umax, delta_bar, method, plts, surrogate_model)
 %
 % Returns a {x_dim, N} cell array.
 %
@@ -51,28 +51,31 @@ function dataset = collect_data2(D, dynamics, xmin, xmax, umin, umax, delta_bar,
             
         D_max = max(D);
         
-        % generate the state feats
-        [x0,~] = gen_feats(N, D_max, xmin, xmax, umin, umax, method);
+        safety_margin = 0.92; % stay a little away from the constraints 
         
-        % generate the control feats through the OCP
+        % generate the state feats only
+        [x0,~] = gen_feats(N, D_max, xmin*(1/safety_margin), xmax*safety_margin, umin, umax, method);
+        
+        % setup the OCP
+        [opti, X0, X, U] = build_ocp(surrogate_model, N);
         for d = 1:D_max
-            [x_opti, u_opti] = ocp(surrogate_model, x0(:,d), N);
+            
+            % generate the control feats through the OCP
+            % old way 
+            % [x_opti, u_opti] = ocp(surrogate_model, x0(:,d), N);
+            opti.set_value(X0, x0(:,d));
+            sol = opti.solve();
+            u_opti = sol.value(U(:,:)); 
+                        
             u(:,:,d) = u_opti;
+            if mod(d,5) == 0, disp([num2str(d) ' data collected...']); end
         end
         
         full_dataset = run_dynamics(@(t,x,u) dynamics(t,x,u), x0, u, delta_bar, plts);
         dataset = dataset_reduce(full_dataset, D);
      
     end
-%     
-%     
-%     if strcmp(method,'ocp')
-%         
-%         [x0,] = gen_feats(N, D, xmin, xmax, umin, umax, method, connected);
-%         [x_opti, u_opti] = ocp(surrogate_model, x0, N);
-% 
-%     end
-     
+    
     disp('Done collecting data!')
     
     function full_dataset = run_dynamics(dynamics, x0, u, delta_bar, plts)
@@ -94,16 +97,6 @@ function dataset = collect_data2(D, dynamics, xmin, xmax, umin, umax, delta_bar,
 
                 idx = find(t>=time(n), 1, 'first');
                 x_steps(n,:) = x(idx,:);
-
-                % plot if necessary
-                if plts 
-                    figure(n-1)
-                    plot(x_steps(1,1),x_steps(1,2),'ko','markersize',8,'linewidth',2); hold on; grid on
-                    plot(x_steps(n,1),x_steps(n,2),'kx','markersize',8,'linewidth',2);
-                    plot(x_steps(1:n,1), x_steps(1:n,2),'-b','linewidth',2);
-                    axis(plot_aug*[xmin(1) xmax(1) xmin(2) xmax(2)])
-                    title(['Data collection for ' num2str(n-1) ' control moves!'])
-                end
                 
                 % add noise
                 del = rand(2,1) * 2*delta_bar - delta_bar;

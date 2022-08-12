@@ -1,9 +1,18 @@
-function [x_opti,u_opti] = ocp(surrogate_model, x0, N)
+function [opti, X0, X, U] = build_ocp(surrogate_model, N)
 %OCP Summary of this function goes here
 %   Detailed explanation goes here
 
     % import target values and costs
     constants
+
+    % reference
+%     xs = [0; 0];
+%     us = 0;
+
+    % costs
+%     Q = 10*eye(nx);
+%     R = 0.5*eye(nu);
+%     P = 50*eye(nx); 
 
     import casadi.*
     opti = casadi.Opti();
@@ -38,12 +47,5 @@ function [x_opti,u_opti] = ocp(surrogate_model, x0, N)
     ops.ipopt.print_level = 0;
     ops.print_time = false;    
     opti.solver('ipopt', ops);
-    
-    opti.set_value(X0, x0);
-    sol = opti.solve();
-
-    % extract optimal solution
-    u_opti = sol.value(U(:,:)); 
-    x_opti = sol.value(X(:,:)); 
 
 end
