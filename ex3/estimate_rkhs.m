@@ -3,8 +3,6 @@ function gammas = estimate_rkhs(dataset, kernel, lengthscales)
 % Returns two (x_dim, N) arrays: 
 % gammas - the estimated RKHS norms for each x_dim and time step
 % lengthscales - the estimated best hyperparameters
-%
-% TODO: apply safety factor
 
     jitter = 1e-5;
 
@@ -39,5 +37,4 @@ function gammas = estimate_rkhs(dataset, kernel, lengthscales)
 
     disp('Done estimating the RKHS norms!')
 
-    
 end

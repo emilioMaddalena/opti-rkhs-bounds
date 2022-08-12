@@ -1,9 +1,12 @@
-function [ub,lb] = approx_bnd(x, data, kernel, gamma, del_bar)
-%Description here
+function [ub,lb] = subopt_bnd(x, data, kernel, gamma, del_bar)
+% For a given query point x, computes the uncertainty around f(x) sub-optimally
+% based on the specified kernel, ground-truth RKHS estimate and noise bound
+%
+% Returns two scalars, so that  lb <= f(x) < ub
 
     function bound = compute_bound(x, dir)
         
-        % build nominal KRR model
+        % Build nominal KRR model
         jitter = 1e-5;
         lambda = 1e-2;
 
@@ -15,32 +18,14 @@ function [ub,lb] = approx_bnd(x, data, kernel, gamma, del_bar)
         alpha = (K + n_data*lambda*eye(n_data))\y; 
         krr = @(x) alpha'*kernel(X,x);
 
-%         % compute Delta
-%         delta = sdpvar(n_data,1);
-%         constr = -del_bar <= delta <= del_bar;
-%         cost = (delta'/K)*delta - 2*(y'/K)*delta;
-%         temp = optimize(constr, cost, sdpsettings('verbose', 0, 'solver', 'gurobi'));
-%         delta = value(delta);
-%         Delta = -(delta'/K)*delta + 2*(y'/K)*delta;
-% 
-%         % compute the indivdual terms and the bounds
-%         s = @(x) y'*(K\kernel(X,x));
-%         s_norm = sqrt(y'*(K\y));
-%         P = @(x) sqrt(real(diag(kernel(x,x) - (kernel(x,X)/K)*kernel(X,x))));
-%         p = @(x) (del_bar * vecnorm((kernel(x,X)/K)', 1))';
-%         %q = @(x) (y' * ((K+(1/(N*lam))*K*K)\kernel(X,x)))';
-%         q = @(x) abs(s(x) - krr(x));
-% 
-%         S = @(x) P(x).*sqrt(gamma^2 + Delta - s_norm^2) + abs(p(x)) + q(x);
-
-        % compute Delta
+        % Compute Delta
         nu = sdpvar(n_data,1);
         cost = 1/4*(nu'*K*nu) + nu'*y + del_bar*norm(nu,1);
         temp = optimize([], cost, sdpsettings('verbose', 0, 'solver', 'gurobi'));
         nu = value(nu);
         Delta = value(cost);
 
-        % compute the indivdual terms and the bounds
+        % Compute the indivdual terms and the bounds
         s = @(x) y'*(K\kernel(X,x));
         s_norm = sqrt(y'*(K\y));
         P = @(x) sqrt(real(diag(kernel(x,x) - (kernel(x,X)/K)*kernel(X,x))));

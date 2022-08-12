@@ -1,6 +1,8 @@
 function [ub,lb] = opt_bnd(x, data, kernel, gamma, del_bar)
-%OPT_BND Summary of this function goes here
-%   Detailed explanation goes here
+% For a given query point x, computes the uncertainty around f(x) optimally
+% based on the specified kernel, ground-truth RKHS estimate and noise bound
+%
+% Returns two scalars, so that  lb <= f(x) < ub
 
     function bound = compute_bound(x, dir)
 
@@ -8,7 +10,7 @@ function [ub,lb] = opt_bnd(x, data, kernel, gamma, del_bar)
         y = data(:,end);
         N = size(X,1);
         
-        if N <= 300, jitter = 1e-5; else, jitter = 1e-5; end
+        jitter = 1e-5;
         K = kernel(X,X) + jitter*eye(N); 
 
         c  = sdpvar(N,1);
