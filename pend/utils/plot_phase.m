@@ -23,6 +23,8 @@ function plot_phase(x_opti, x_true, ubs, lbs, x_min, x_max, fignum)
     grid on; set(gcf,'color','w');
     X_feas = Polyhedron([1 0; -1 0; 0 1; 0 -1],[x_max(1); -x_min(1); x_max(2); -x_min(2)]);
     plot(X_feas, 'color', 'red', 'linewidth', 1.5, 'linestyle', '--', 'alpha', 0)
+    
+    xlim([0.9 3.1]); ylim([0.45 2.05])
 
 end
 

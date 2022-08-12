@@ -16,8 +16,7 @@ function dxdt = pend(t,x,uex)
   
   dx1 = x(2);
   dx2 = (g/l)*sin(x(1)) - (v/(m*l^2))*x(2) + (1/(m*l^2))*u;
-  %dx2 = (g/l)*x(1) - (v/(m*l^2))*x(2) + (1/(m*l^2))*u;
-  
+
   dxdt = [dx1; dx2];
   
 end
