@@ -102,7 +102,6 @@ for step = 1:N
     disp(['Step ' num2str(step) ' done...'])
 end
 
-plot_time(x_opti, x_true, ubs_subopt, lbs_subopt, x_min, x_max, 1);
 plot_phase(x_opti, x_true, ubs_subopt, lbs_subopt, x_min, x_max, 2)
 plot_errbars(x_opti, x_true, ubs_subopt, lbs_subopt, x_min, x_max, 3);
 
@@ -126,7 +125,6 @@ for step = 1:N
     disp(['Step ' num2str(step) ' done...'])
 end
 
-plot_time(x_opti, x_true, ubs_opt, lbs_opt, x_min, x_max, 4);
 plot_phase(x_opti, x_true, ubs_opt, lbs_opt, x_min, x_max, 5)
 plot_errbars(x_opti, x_true, ubs_opt, lbs_opt, x_min, x_max, 6)
 
