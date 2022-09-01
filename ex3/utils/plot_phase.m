@@ -11,9 +11,10 @@ function plot_phase(x_opti, x_true, ubs, lbs, x_min, x_max, fignum)
         figure
     end
     
-    plot(x_opti(1,:),x_opti(2,:),'r-x','linewidth',2); hold on
-    plot(x_true(:,1), x_true(:,2), 'k-x','linewidth',2);
-    legend('model', 'ground-truth', 'AutoUpdate', 'off')
+    %plot(x_opti(1,:),x_opti(2,:),'r-x','linewidth',2); hold on
+    plot(x_true(:,1), x_true(:,2), 'k-x','linewidth',2); hold on
+    %legend('model', 'ground-truth', 'AutoUpdate', 'off')
+    legend('ground-truth', 'AutoUpdate', 'off')
     for i = 1:N
         box = Polyhedron([1 0; -1 0; 0 1; 0 -1],[ubs(1,i); -lbs(1,i); ubs(2,i); -lbs(2,i)]);
         plot(box, 'color', 'red', 'linewidth', 1, 'linestyle', '-', 'alpha', 0.05);

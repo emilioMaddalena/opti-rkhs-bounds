@@ -14,9 +14,10 @@ function plot_errbars(x_opti, x_true, ubs, lbs, x_min, x_max, fignum)
     for state = 1:nx
         
         subplot(1,2,state)
-        plot(xx, x_opti(state,:), '-', 'marker', 'x', 'linewidth', 2, 'color', '#0072BD'); hold on
-        plot(xx, x_true(:,state), '-', 'marker', 'x', 'linewidth', 2, 'color', 'k');
-        legend('model', 'ground-truth', 'AutoUpdate', 'off', 'Interpreter','latex')
+        %plot(xx, x_opti(state,:), '-', 'marker', 'x', 'linewidth', 2, 'color', '#0072BD'); hold on
+        plot(xx, x_true(:,state), '-', 'marker', 'x', 'linewidth', 2, 'color', 'k'); hold on
+        %legend('model', 'ground-truth', 'AutoUpdate', 'off', 'Interpreter','latex')
+        legend('ground-truth', 'AutoUpdate', 'off', 'Interpreter','latex')
         
         widths = (ubs(state,:) - lbs(state,:))/2;
         centers = (ubs(state,:) - lbs(state,:))/2 + lbs(state,:);
