@@ -8,7 +8,7 @@ function [ub,lb] = subopt_bnd(x, data, kernel, gamma, del_bar)
         
         % Build nominal KRR model
         jitter = 1e-5;
-        lambda = 1e-2;
+        lambda = 1e-7;
 
         X = data(:,1:end-1);
         y = data(:,end);
